@@ -1,0 +1,10 @@
+.idea
+pkg
+tags
+.emacs-project
+config/environment.rb
+fulllib
+TAGS
+doc
+/config/mirror.yaml
+.rvmrc

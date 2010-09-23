@@ -1,3 +1,4 @@
+# -*-ruby-*-
 # Copyright: Copyright (c) 2010 RightScale, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -35,6 +36,7 @@ SPEC = Gem::Specification.new do |spec|
   spec.require_path = 'lib'
 
   spec.add_dependency 'has_global_session', '~> 1.0'
+  spec.add_dependency 'rack', '~> 1.2'
 
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'flexmock'
@@ -46,5 +48,5 @@ end
 
 if $PROGRAM_NAME == __FILE__
    Gem.manage_gems if Gem::RubyGemsVersion.to_f < 1.0
-   Gem::Builder.new(spec).build
+   Gem::Builder.new(SPEC).build
 end

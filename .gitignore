@@ -8,3 +8,4 @@ TAGS
 doc
 /config/mirror.yaml
 .rvmrc
+*.gem

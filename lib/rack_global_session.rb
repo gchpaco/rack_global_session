@@ -58,7 +58,7 @@ module Rack
         end
       end
 
-      def renew_cookie(env)
+      def renew_ticket(env)
         if Configuration['renew'] && env['global_session'] &&
             env['global_session'].directory.local_authority_name &&
             env['global_session'].expired_at < renew.to_i.minutes.from_now.utc
@@ -90,7 +90,7 @@ module Rack
       def call(env)
         env['rack.cookies'] = {} unless env['rack.cookies']
         read_cookie(env)
-        renew_cookie(env)
+        renew_ticket(env)
         begin
           @app.call(env)
         ensure

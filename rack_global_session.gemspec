@@ -40,6 +40,7 @@ EOS
 
   spec.add_dependency 'has_global_session', '~> 1.0'
   spec.add_dependency 'rack', '~> 1.2'
+  spec.add_dependency 'rack-contrib', '~> 1.0.1'
 
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'flexmock'

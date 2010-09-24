@@ -25,11 +25,26 @@ require "has_global_session"
 require "active_support/time"
 
 module Rack
+  # A port of has_global_session to Rack middleware.
   module GlobalSessions
+    # Alias some of the HasGlobalSession classes for easy typing.
     Configuration = HasGlobalSession::Configuration
     Directory = HasGlobalSession::Directory
     Session = HasGlobalSession::GlobalSession
+    # Global session middleware.  Note: this class relies on
+    # Rack::Cookies being used higher up in the chain.
     class GlobalSession
+      # Make a new global session.
+      #
+      # The optional block here controls an alternate ticket retrieval
+      # method.  If no ticket is stored in the cookie jar, this
+      # function is called.  If it returns a non-nil value, that value
+      # is the ticket.
+      #
+      # === Parameters
+      # app(Rack client): application to run
+      # file(String): filename for has_global_session configuration
+      # block: optional alternate ticket retrieval function
       def initialize(app, file, &block)
         @app = app
         Configuration.config_file = file
@@ -39,6 +54,10 @@ module Rack
         @cookie_name = Configuration['cookie']['name']
       end
 
+      # Read a cookie from the Rack environment.
+      #
+      # === Parameters
+      # env(Hash): Rack environment.
       def read_cookie(env)
         begin
           if env['rack.cookies'].key?(@cookie_name)
@@ -58,6 +77,10 @@ module Rack
         end
       end
 
+      # Renew the session ticket.
+      #
+      # === Parameters
+      # env(Hash): Rack environment
       def renew_ticket(env)
         if Configuration['renew'] && env['global_session'] &&
             env['global_session'].directory.local_authority_name &&
@@ -66,6 +89,10 @@ module Rack
         end
       end
 
+      # Update the cookie jar with the revised ticket.
+      #
+      # === Parameters
+      # env(Hash): Rack environment
       def update_cookie(env)
         domain = Configuration['cookie']['domain'] || ENV['SERVER_NAME']
         begin
@@ -86,10 +113,16 @@ module Rack
         end
       end
 
+      # Delete the ticket from the cookie jar.
+      #
+      # === Parameters
+      # env(Hash): Rack environment
       def wipe_cookie(env)
         env['rack.cookies'][@cookie_name] = {:value => nil, :domain => domain, :expires => Time.at(0)}
       end
 
+      # Rack request chain.  Sets up the global session ticket from
+      # the environment and passes it up the chain.
       def call(env)
         env['rack.cookies'] = {} unless env['rack.cookies']
         read_cookie(env)

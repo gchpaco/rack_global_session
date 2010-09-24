@@ -31,17 +31,30 @@ require "yaml"
 
 Spec::Runner.configuration.mock_with :flexmock
 
-# Helper module
 module Rack::GlobalSessions
+  # Helper class for managing OpenSSL keys.
   class KeyFactory
+    # Make a new keystore, including a temporary directory.
     def initialize
       @keystore = Dir.mktmpdir
     end
 
+    # Return the directory all keys are stored in.
+    #
+    # === Returns
+    # keystore(String): directory where all keys are stored
     def dir
       @keystore
     end
 
+    # Create a new OpenSSL key and write it to the temporary directory.
+    #
+    # === Parameters
+    # name(String): name of key
+    # write_private(Boolean): whether to write the private key to the directory
+    #
+    # === Returns
+    # new_key(OpenSSL::PKey::RSA): key generated
     def create(name, write_private)
       new_key     = OpenSSL::PKey::RSA.generate(1024)
       new_public  = new_key.public_key.to_pem
@@ -51,10 +64,12 @@ module Rack::GlobalSessions
       new_key
     end
 
+    # Remove all keys in the key store.
     def reset()
       Dir[File.join(@keystore, "*")].each { |f| FileUtils.remove_entry_secure f }
     end
 
+    # Tear down the keystore.
     def destroy()
       FileUtils.remove_entry_secure(@keystore)
     end
@@ -89,6 +104,10 @@ module Rack::GlobalSessions
         dump_config(@config_hash)
       end
 
+      # Dump configuration for has_global_session to the config file.
+      #
+      # === Parameters
+      # hash(Hash): has_global_session configuration
       def dump_config(hash)
         File.open(@config_file, "w") do |file|
           file << YAML.dump(hash)
@@ -108,6 +127,7 @@ module Rack::GlobalSessions
 end
 
 module HasGlobalSession::Configuration
+  # Reset global configuration state.
   def self.reset!
     @config = nil
   end

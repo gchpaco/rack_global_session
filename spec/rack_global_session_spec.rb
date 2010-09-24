@@ -170,7 +170,7 @@ module Rack
         lambda {
           Rack::GlobalSession.new(lambda {}, @config_file).call(@environment)
         }.should raise_error(SecurityError)
-    end
+      end
     end
   end
 end

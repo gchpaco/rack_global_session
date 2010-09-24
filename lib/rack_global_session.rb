@@ -44,7 +44,7 @@ module Rack
           if env['rack.cookies'].key?(@cookie_name)
             env['global_session'] = Session.new(@directory,
                                                 env['rack.cookies'][@cookie_name])
-          elsif @cookie_retrieval && cookie = @cookie_retrieval.call
+          elsif @cookie_retrieval && cookie = @cookie_retrieval.call(env)
             env['global_session'] = Session.new(@directory, cookie)
           else
             env['global_session'] = Session.new(@directory)

@@ -25,7 +25,10 @@ require 'rubygems'
 SPEC = Gem::Specification.new do |spec|
   spec.name = "rack_global_session"
   spec.version = "0.0.1"
-  spec.description = "Add global session handling to Rack servers"
+  spec.summary = "Add global session handling to Rack servers"
+  spec.description = <<EOS
+A port of has_global_session to Rack middleware.
+EOS
   spec.authors = ['Graham Hughes']
   spec.email = 'graham@rightscale.com'
   spec.platform = Gem::Platform::RUBY

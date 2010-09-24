@@ -29,6 +29,11 @@ require 'rake/rdoctask'
 
 task :default => 'spec'
 
+desc "Build a binary gem"
+task :gem do
+   ruby 'rack_global_session.gemspec'
+end
+
 # == Unit Tests == #
 
 desc "Run unit tests"

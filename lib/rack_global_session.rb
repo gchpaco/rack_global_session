@@ -81,10 +81,13 @@ module Rack
             env['rack.cookies'][@cookie_name] = {:value => nil, :domain => domain, :expires => Time.at(0)}
           end
         rescue Exception => e
-          # wipe cookie and proceed
-          env['rack.cookies'][@cookie_name] = {:value => nil, :domain => domain, :expires => Time.at(0)}
+          wipe_cookie(env)
           raise e
         end
+      end
+
+      def wipe_cookie(env)
+        env['rack.cookies'][@cookie_name] = {:value => nil, :domain => domain, :expires => Time.at(0)}
       end
 
       def call(env)
@@ -93,7 +96,10 @@ module Rack
         renew_ticket(env)
         begin
           @app.call(env)
-        ensure
+        rescue Exception => e
+          wipe_cookie(env)
+          raise e
+        else
           update_cookie(env)
         end
       end

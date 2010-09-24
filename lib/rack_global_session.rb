@@ -30,10 +30,11 @@ module Rack
     Directory = HasGlobalSession::Directory
     Session = HasGlobalSession::GlobalSession
     class GlobalSession
-      def initialize(app, file)
+      def initialize(app, file, &block)
         @app = app
         Configuration.config_file = file
         Configuration.environment = ENV['RACK_ENV'] || 'development'
+        @cookie_retrieval = block
         @directory = Directory.new(Configuration['directory'])
         @cookie_name = Configuration['cookie']['name']
       end
@@ -43,6 +44,8 @@ module Rack
           if env['rack.cookies'].key?(@cookie_name)
             env['global_session'] = Session.new(@directory,
                                                 env['rack.cookies'][@cookie_name])
+          elsif @cookie_retrieval && cookie = @cookie_retrieval.call
+            env['global_session'] = Session.new(@directory, cookie)
           else
             env['global_session'] = Session.new(@directory)
           end

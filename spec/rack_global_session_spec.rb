@@ -87,6 +87,12 @@ module Rack
         @environment['rack.cookies']['aCookie'] = @environment['rack.cookies']['aCookie'][:value]
       end
 
+      it 'should be able to read cookies from random places' do
+        Rack::GlobalSession.new(lambda {}, @config_file) do
+          @environment['rack.cookies']['aCookie']
+        end.call({})
+      end
+
       it 'should read a valid cookie' do
         Rack::GlobalSession.new(lambda {}, @config_file).call(@environment)
       end

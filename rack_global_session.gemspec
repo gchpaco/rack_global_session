@@ -49,8 +49,3 @@ EOS
     ["LICENSE", "README.rdoc", "Rakefile", "rack_global_session.gemspec"]
   spec.files = candidates.sort
 end
-
-if $PROGRAM_NAME == __FILE__
-   Gem.manage_gems if Gem::RubyGemsVersion.to_f < 1.0
-   Gem::Builder.new(SPEC).build
-end

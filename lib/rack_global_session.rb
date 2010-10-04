@@ -43,15 +43,20 @@ module Rack
       #
       # === Parameters
       # app(Rack client): application to run
-      # file(String): filename for has_global_session configuration
+      # configuration(String or HasGlobalSession::Configuration): has_global_session configuration.
+      #                                                           If a string, is interpreted as a
+      #                                                           filename to load the config from.
       # block: optional alternate ticket retrieval function
-      def initialize(app, file, &block)
+      def initialize(app, configuration, &block)
         @app = app
-        Configuration.config_file = file
-        Configuration.environment = ENV['RACK_ENV'] || 'development'
+        if configuration.instance_of?(String)
+          @configuration = Configuration.new(configuration, ENV['RACK_ENV'] || 'development')
+        else
+          @configuration = configuration
+        end
         @cookie_retrieval = block
-        @directory = Directory.new(Configuration['directory'])
-        @cookie_name = Configuration['cookie']['name']
+        @directory = Directory.new(@configuration, @configuration['directory'])
+        @cookie_name = @configuration['cookie']['name']
       end
 
       # Read a cookie from the Rack environment.
@@ -82,7 +87,7 @@ module Rack
       # === Parameters
       # env(Hash): Rack environment
       def renew_ticket(env)
-        if Configuration['renew'] && env['global_session'] &&
+        if @configuration['renew'] && env['global_session'] &&
             env['global_session'].directory.local_authority_name &&
             env['global_session'].expired_at < renew.to_i.minutes.from_now.utc
           env['global_session'].renew!
@@ -94,11 +99,11 @@ module Rack
       # === Parameters
       # env(Hash): Rack environment
       def update_cookie(env)
-        domain = Configuration['cookie']['domain'] || ENV['SERVER_NAME']
         begin
+          domain = @configuration['cookie']['domain'] || ENV['SERVER_NAME']
           if env['global_session'] && env['global_session'].valid?
             value = env['global_session'].to_s
-            expires = Configuration['ephemeral'] ? nil : env['global_session'].expired_at
+            expires = @configuration['ephemeral'] ? nil : env['global_session'].expired_at
             unless env['rack.cookies'].key?(@cookie_name) &&
                 env['rack.cookies'][@cookie_name] == value
               env['rack.cookies'][@cookie_name] = {:value => value, :domain => domain, :expires => expires}
@@ -118,7 +123,7 @@ module Rack
       # === Parameters
       # env(Hash): Rack environment
       def wipe_cookie(env)
-        domain = Configuration['cookie']['domain'] || ENV['SERVER_NAME']
+        domain = @configuration['cookie']['domain'] || ENV['SERVER_NAME']
         env['rack.cookies'][@cookie_name] = {:value => nil, :domain => domain, :expires => Time.at(0)}
       end
 

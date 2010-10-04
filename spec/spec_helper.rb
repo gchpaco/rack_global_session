@@ -112,7 +112,7 @@ module Rack::GlobalSessions
         File.open(@config_file, "w") do |file|
           file << YAML.dump(hash)
         end
-        Configuration.reset!
+        @configuration = Configuration.new(@config_file, "test")
       end
 
       after(:all) do
@@ -123,12 +123,5 @@ module Rack::GlobalSessions
         @factory.reset
       end
     end
-  end
-end
-
-module HasGlobalSession::Configuration
-  # Reset global configuration state.
-  def self.reset!
-    @config = nil
   end
 end

@@ -118,6 +118,7 @@ module Rack
       # === Parameters
       # env(Hash): Rack environment
       def wipe_cookie(env)
+        domain = Configuration['cookie']['domain'] || ENV['SERVER_NAME']
         env['rack.cookies'][@cookie_name] = {:value => nil, :domain => domain, :expires => Time.at(0)}
       end
 

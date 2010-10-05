@@ -26,13 +26,19 @@ require 'fileutils'
 require 'rake'
 require 'spec/rake/spectask'
 require 'rake/rdoctask'
+require 'rake/gempackagetask'
+require 'rake/clean'
 
 task :default => 'spec'
 
-desc "Build a binary gem"
-task :gem do
-   ruby 'rack_global_session.gemspec'
+load File.expand_path(File.join(File.dirname(__FILE__), 'rack_global_session.gemspec'))
+
+Rake::GemPackageTask.new(SPEC) do |package|
+  package.need_zip = true
+  package.need_tar = true
 end
+
+CLEAN.include('pkg')
 
 # == Unit Tests == #
 

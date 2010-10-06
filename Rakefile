@@ -31,9 +31,9 @@ require 'rake/clean'
 
 task :default => 'spec'
 
-load File.expand_path(File.join(File.dirname(__FILE__), 'rack_global_session.gemspec'))
+load
 
-Rake::GemPackageTask.new(SPEC) do |package|
+Rake::GemPackageTask.new(Gem::Specification.load('rack_global_session.gemspec')) do |package|
   package.need_zip = true
   package.need_tar = true
 end

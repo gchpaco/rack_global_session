@@ -22,7 +22,7 @@
 
 require 'rubygems'
 
-SPEC = Gem::Specification.new do |spec|
+Gem::Specification.new do |spec|
   spec.name = "rack_global_session"
   spec.version = "0.1"
   spec.summary = "Add global session handling to Rack servers"

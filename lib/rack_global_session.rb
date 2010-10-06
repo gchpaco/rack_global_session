@@ -134,12 +134,13 @@ module Rack
         read_cookie(env)
         renew_ticket(env)
         begin
-          @app.call(env)
+          tuple = @app.call(env)
         rescue Exception => e
           wipe_cookie(env)
           raise e
         else
           update_cookie(env)
+          return tuple
         end
       end
     end

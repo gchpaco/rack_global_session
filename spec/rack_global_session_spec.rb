@@ -35,12 +35,14 @@ module Rack
     end
 
     it 'should create an empty session if none exists' do
+      token = Object.new
       @app = Proc.new do |env|
         env['global_session'].should_not be_nil
         env['global_session'].should be_valid
+        token
       end
       environment = {}
-      Rack::GlobalSession.new(@app, @configuration).call(environment)
+      Rack::GlobalSession.new(@app, @configuration).call(environment).should == token
       environment['rack.cookies']["aCookie"][:value].should_not be_nil
       environment['rack.cookies']["aCookie"][:domain].should == "example.com"
       environment['rack.cookies']["aCookie"][:expires].should <= 10.minutes.from_now.utc

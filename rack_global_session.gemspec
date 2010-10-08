@@ -44,6 +44,7 @@ EOS
 
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'flexmock'
+  spec.add_development_dependency 'rtags'
 
   candidates = Dir.glob("{lib,spec}/**/*") +
     ["LICENSE", "README.rdoc", "Rakefile", "rack_global_session.gemspec"]

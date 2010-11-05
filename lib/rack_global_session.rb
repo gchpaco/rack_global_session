@@ -131,16 +131,25 @@ module Rack
       # the environment and passes it up the chain.
       def call(env)
         env['rack.cookies'] = {} unless env['rack.cookies']
-        read_cookie(env)
-        renew_ticket(env)
         begin
-          tuple = @app.call(env)
+          read_cookie(env)
+          renew_ticket(env)
         rescue Exception => e
           wipe_cookie(env)
-          raise e
+          if env['rack.logger']
+            env['rack.logger'].error("Error while reading cookies: " + e + " " + e.backtrace)
+          end
+          [503, {'Content-Type' => 'text/plain'}, "Invalid cookie"]
         else
-          update_cookie(env)
-          return tuple
+          begin
+            tuple = @app.call(env)
+          rescue Exception => e
+            wipe_cookie(env)
+            raise e
+          else
+            update_cookie(env)
+            return tuple
+          end
         end
       end
     end

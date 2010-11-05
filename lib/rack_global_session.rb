@@ -139,7 +139,7 @@ module Rack
           if env['rack.logger']
             env['rack.logger'].error("Error while reading cookies: " + e + " " + e.backtrace)
           end
-          [503, {'Content-Type' => 'text/plain'}, "Invalid cookie"]
+          return [503, {'Content-Type' => 'text/plain'}, "Invalid cookie"]
         else
           begin
             tuple = @app.call(env)

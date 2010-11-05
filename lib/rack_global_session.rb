@@ -136,8 +136,9 @@ module Rack
           renew_ticket(env)
         rescue Exception => e
           wipe_cookie(env)
+          env['rack.error'].puts "Error while reading cookies: #{e} #{e.backtrace}"
           if env['rack.logger']
-            env['rack.logger'].error("Error while reading cookies: " + e + " " + e.backtrace)
+            env['rack.logger'].error("Error while reading cookies: #{e} #{e.backtrace}")
           end
           return [503, {'Content-Type' => 'text/plain'}, "Invalid cookie"]
         else

@@ -22,7 +22,6 @@
 #++
 
 require "has_global_session"
-require "active_support/time"
 
 module Rack
   # A port of has_global_session to Rack middleware.

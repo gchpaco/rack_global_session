@@ -1,4 +1,4 @@
-# -*-ruby-*-
+# -*-mode: ruby-mode; encoding: utf-8-*-
 # Copyright: Copyright (c) 2010 RightScale, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -20,11 +20,12 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'rubygems'
+$:.push File.expand_path("../lib", __FILE__)
+require "rack_global_session/version"
 
 Gem::Specification.new do |spec|
   spec.name = "rack_global_session"
-  spec.version = "0.1"
+  spec.version = Rack::GlobalSessions::VERSION
   spec.summary = "Add global session handling to Rack servers"
   spec.description = <<EOS
 A port of has_global_session to Rack middleware.
@@ -38,15 +39,19 @@ EOS
   spec.required_ruby_version = '>= 1.8.7'
   spec.require_path = 'lib'
 
-  spec.add_dependency 'has_global_session', '~> 1.1'
+  spec.add_dependency 'activesupport', '~> 3.0.3'
+  spec.add_dependency 'i18n', "~> 0.5.0"
+  spec.add_dependency 'tzinfo'
+  spec.add_dependency 'has_global_session', '~> 1.1.3'
   spec.add_dependency 'rack', '~> 1.2'
   spec.add_dependency 'rack-contrib', '~> 1.0.1'
 
-  spec.add_development_dependency 'rspec'
-  spec.add_development_dependency 'flexmock'
-  spec.add_development_dependency 'rtags'
+  spec.add_development_dependency 'rspec', "~> 1.3"
+  spec.add_development_dependency 'flexmock', "~> 0.8.11"
+  spec.add_development_dependency 'rtags', "~> 0.97"
 
-  candidates = Dir.glob("{lib,spec}/**/*") +
-    ["LICENSE", "README.rdoc", "Rakefile", "rack_global_session.gemspec"]
-  spec.files = candidates.sort
+  spec.files         = `git ls-files`.split("\n")
+  spec.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  spec.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  spec.require_paths = ["lib"]
 end

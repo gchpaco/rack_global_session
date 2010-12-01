@@ -22,6 +22,7 @@
 #++
 
 require 'rubygems'
+require 'bundler'
 require 'fileutils'
 require 'rake'
 require 'spec/rake/spectask'
@@ -29,18 +30,23 @@ require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/clean'
 
-task :default => 'spec'
+Bundler::GemHelper.install_tasks
 
-load
+# == Gem == #
 
-Rake::GemPackageTask.new(Gem::Specification.load('rack_global_session.gemspec')) do |package|
+gemtask = Rake::GemPackageTask.new(Gem::Specification.load("rack_global_session.gemspec")) do |package|
+  package.package_dir = ENV['PACKAGE_DIR'] || 'pkg'
   package.need_zip = true
   package.need_tar = true
 end
 
-CLEAN.include('pkg')
+directory gemtask.package_dir
+
+CLEAN.include(gemtask.package_dir)
 
 # == Unit Tests == #
+
+task :specs => :spec
 
 desc "Run unit tests"
 Spec::Rake::SpecTask.new do |t|
@@ -72,6 +78,12 @@ Rake::RDocTask.new do |rd|
   rd.rdoc_dir = 'doc/rdocs'
   rd.main = 'README.rdoc'
   rd.rdoc_files.include 'README.rdoc', "lib/**/*.rb"
+
+  rd.options << '--inline-source'
+  rd.options << '--line-numbers'
+  rd.options << '--all'
+  rd.options << '--fileboxes'
+  rd.options << '--diagram'
 end
 
 # == Emacs integration == #

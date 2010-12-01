@@ -22,6 +22,7 @@
 #++
 
 require "rubygems"
+require 'bundler/setup'
 $:.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib')))
 require File.expand_path(File.dirname(__FILE__) + "/../lib/rack_global_session")
 require "spec"

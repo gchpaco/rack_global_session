@@ -22,6 +22,7 @@
 #++
 
 require "has_global_session"
+require "active_support"
 require "active_support/time"
 
 module Rack
@@ -134,23 +135,17 @@ module Rack
         begin
           read_cookie(env)
           renew_ticket(env)
+          tuple = @app.call(env)
         rescue Exception => e
           wipe_cookie(env)
-          $stderr.puts "Error while reading cookies: #{e} #{e.backtrace}"
+          $stderr.puts "Error while reading cookies: #{e.class} #{e} #{e.backtrace}"
           if env['rack.logger']
-            env['rack.logger'].error("Error while reading cookies: #{e} #{e.backtrace}")
+            env['rack.logger'].error("Error while reading cookies: #{e.class} #{e} #{e.backtrace}")
           end
           return [503, {'Content-Type' => 'text/plain'}, "Invalid cookie"]
         else
-          begin
-            tuple = @app.call(env)
-          rescue Exception => e
-            wipe_cookie(env)
-            raise e
-          else
-            update_cookie(env)
-            return tuple
-          end
+          update_cookie(env)
+          return tuple
         end
       end
     end

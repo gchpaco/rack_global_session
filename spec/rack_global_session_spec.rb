@@ -24,6 +24,7 @@
 require File.expand_path(File.dirname(__FILE__) + "/spec_helper")
 require 'tmpdir'
 require 'fileutils'
+require 'stringio'
 
 module Rack
   describe GlobalSession do
@@ -32,6 +33,15 @@ module Rack
     before(:each) do
       ENV['SERVER_NAME'] = "server"
       ENV['RACK_ENV'] = "test"
+    end
+
+    before(:each) do
+      @olderr = $stderr
+      $stderr = StringIO.new
+    end
+
+    after(:each) do
+      $stderr = @olderr
     end
 
     it 'should create an empty session if none exists' do
@@ -60,9 +70,12 @@ module Rack
       environment = {"rack.cookies" => {
           "aCookie" => "foo"
         }}
-      lambda {
-        Rack::GlobalSession.new(lambda {}, @configuration).call(environment)
-      }.should raise_error(HasGlobalSession::MalformedCookie, /buffer error/)
+      key, hash, value = Rack::GlobalSession.new(lambda {}, @configuration).call(environment)
+      key.should == 503
+      hash.should == {'Content-Type' => 'text/plain'}
+      value.should == "Invalid cookie"
+      $stderr.string.should =~ /HasGlobalSession::MalformedCookie/
+      $stderr.string.should =~ /buffer error/
     end
 
     it 'should raise an error on well formed but invalid cookies' do
@@ -77,9 +90,11 @@ module Rack
       compressed = Zlib::Deflate.deflate(json, Zlib::BEST_COMPRESSION)
       base64 = HasGlobalSession::Encoding::Base64Cookie.dump(compressed)
       environment = {"rack.cookies" => {"aCookie" => base64}}
-      lambda {
-        Rack::GlobalSession.new(lambda {}, @configuration).call(environment)
-      }.should raise_error(OpenSSL::PKey::RSAError)
+      key, hash, value = Rack::GlobalSession.new(lambda {}, @configuration).call(environment)
+      key.should == 503
+      hash.should == {'Content-Type' => 'text/plain'}
+      value.should == "Invalid cookie"
+      $stderr.string.should =~ /OpenSSL::PKey::RSAError/
     end
 
     context 'with a valid environment' do
@@ -129,17 +144,21 @@ module Rack
         end
 
         it 'should not renew expired cookies' do
-          lambda {
-            Rack::GlobalSession.new(lambda {|e| e['global_session'].renew!},
-                                    @configuration).call(@environment)
-          }.should raise_error(HasGlobalSession::NoAuthority)
+          key, hash, value = Rack::GlobalSession.new(lambda {|e| e['global_session'].renew!},
+                                                     @configuration).call(@environment)
+          key.should == 503
+          hash.should == {'Content-Type' => 'text/plain'}
+          value.should == "Invalid cookie"
+          $stderr.string.should =~ /HasGlobalSession::NoAuthority/
         end
 
         it 'should not attempt to update the cookie when it is not an authority' do
-          lambda {
-            Rack::GlobalSession.new(lambda {|e| e['global_session']['first'] = 4},
-                                    @configuration).call(@environment)
-          }.should raise_error(HasGlobalSession::NoAuthority)
+          key, hash, value = Rack::GlobalSession.new(lambda {|e| e['global_session']['first'] = 4},
+                                                     @configuration).call(@environment)
+          key.should == 503
+          hash.should == {'Content-Type' => 'text/plain'}
+          value.should == "Invalid cookie"
+          $stderr.string.should =~ /HasGlobalSession::NoAuthority/
         end
       end
 
@@ -160,18 +179,21 @@ module Rack
 
       it 'should unconditionally wipe the cookie if an error occurs' do
         @environment['rack.cookies']['aCookie'].should_not be_nil
-        lambda {
-          Rack::GlobalSession.new(lambda {raise "foo"}, @configuration).call(@environment)
-        }.should raise_error
+        key, hash, value = Rack::GlobalSession.new(lambda {raise "foo"}, @configuration).call(@environment)
+        key.should == 503
+        hash.should == {'Content-Type' => 'text/plain'}
+        value.should == "Invalid cookie"
         @environment['rack.cookies']['aCookie'][:value].should be_nil
       end
 
       it 'should refuse cookies from invalid certification authorities' do
         @config_hash["common"]["trust"] = "second"
         dump_config(@config_hash)
-        lambda {
-          Rack::GlobalSession.new(lambda {}, @configuration).call(@environment)
-        }.should raise_error(SecurityError)
+        key, hash, value = Rack::GlobalSession.new(lambda {}, @configuration).call(@environment)
+        key.should == 503
+        hash.should == {'Content-Type' => 'text/plain'}
+        value.should == "Invalid cookie"
+        $stderr.string.should =~ /SecurityError/
       end
     end
   end

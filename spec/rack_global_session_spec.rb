@@ -71,7 +71,7 @@ module Rack
           "aCookie" => "foo"
         }}
       key, hash, value = Rack::GlobalSession.new(lambda {}, @configuration).call(environment)
-      key.should == 503
+      key.should == 403
       hash.should == {'Content-Type' => 'text/plain'}
       value.should == "Invalid cookie"
       $stderr.string.should =~ /HasGlobalSession::MalformedCookie/
@@ -91,7 +91,7 @@ module Rack
       base64 = HasGlobalSession::Encoding::Base64Cookie.dump(compressed)
       environment = {"rack.cookies" => {"aCookie" => base64}}
       key, hash, value = Rack::GlobalSession.new(lambda {}, @configuration).call(environment)
-      key.should == 503
+      key.should == 403
       hash.should == {'Content-Type' => 'text/plain'}
       value.should == "Invalid cookie"
       $stderr.string.should =~ /OpenSSL::PKey::RSAError/
@@ -146,18 +146,18 @@ module Rack
         it 'should not renew expired cookies' do
           key, hash, value = Rack::GlobalSession.new(lambda {|e| e['global_session'].renew!},
                                                      @configuration).call(@environment)
-          key.should == 503
+          key.should == 500
           hash.should == {'Content-Type' => 'text/plain'}
-          value.should == "Invalid cookie"
+          value.should == "Error"
           $stderr.string.should =~ /HasGlobalSession::NoAuthority/
         end
 
         it 'should not attempt to update the cookie when it is not an authority' do
           key, hash, value = Rack::GlobalSession.new(lambda {|e| e['global_session']['first'] = 4},
                                                      @configuration).call(@environment)
-          key.should == 503
+          key.should == 500
           hash.should == {'Content-Type' => 'text/plain'}
-          value.should == "Invalid cookie"
+          value.should == "Error"
           $stderr.string.should =~ /HasGlobalSession::NoAuthority/
         end
       end
@@ -179,10 +179,9 @@ module Rack
 
       it 'should unconditionally wipe the cookie if an error occurs' do
         @environment['rack.cookies']['aCookie'].should_not be_nil
-        key, hash, value = Rack::GlobalSession.new(lambda {raise "foo"}, @configuration).call(@environment)
-        key.should == 503
-        hash.should == {'Content-Type' => 'text/plain'}
-        value.should == "Invalid cookie"
+        lambda {
+          Rack::GlobalSession.new(lambda {raise "foo"}, @configuration).call(@environment)
+        }.should raise_exception(/foo/)
         @environment['rack.cookies']['aCookie'][:value].should be_nil
       end
 
@@ -190,7 +189,7 @@ module Rack
         @config_hash["common"]["trust"] = "second"
         dump_config(@config_hash)
         key, hash, value = Rack::GlobalSession.new(lambda {}, @configuration).call(@environment)
-        key.should == 503
+        key.should == 403
         hash.should == {'Content-Type' => 'text/plain'}
         value.should == "Invalid cookie"
         $stderr.string.should =~ /SecurityError/

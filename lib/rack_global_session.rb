@@ -135,17 +135,30 @@ module Rack
         begin
           read_cookie(env)
           renew_ticket(env)
-          tuple = @app.call(env)
         rescue Exception => e
           wipe_cookie(env)
           $stderr.puts "Error while reading cookies: #{e.class} #{e} #{e.backtrace}"
           if env['rack.logger']
             env['rack.logger'].error("Error while reading cookies: #{e.class} #{e} #{e.backtrace}")
           end
-          return [503, {'Content-Type' => 'text/plain'}, "Invalid cookie"]
+          return [403, {'Content-Type' => 'text/plain'}, "Invalid cookie"]
         else
-          update_cookie(env)
-          return tuple
+          begin
+            tuple = @app.call(env)
+          rescue HasGlobalSession::NoAuthority => e
+            wipe_cookie(env)
+            $stderr.puts "Error during request: #{e.class} #{e} #{e.backtrace}"
+            if env['rack.logger']
+              env['rack.logger'].error("Error during request: #{e.class} #{e} #{e.backtrace}")
+            end
+            return [500, {'Content-Type' => 'text/plain'}, "Error"]
+          rescue Exception => e
+            wipe_cookie(env)
+            raise e
+          else
+            update_cookie(env)
+            return tuple
+          end
         end
       end
     end
